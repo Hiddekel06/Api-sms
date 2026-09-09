@@ -7,6 +7,45 @@ use Tests\TestCase;
 
 class SmsApiTest extends TestCase
 {
+    private string $validToken = 'mfp_live_token_CHANGEZ_CE_TOKEN_ICI';
+
+    // ---------------------------------------------------------------------------
+    // Authentification
+    // ---------------------------------------------------------------------------
+
+    public function test_unauthenticated_request_returns_401(): void
+    {
+        $response = $this->postJson('/api/sms/send', [
+            'to' => '221774517228',
+            'text' => 'Test',
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'status' => 401,
+            ]);
+    }
+
+    public function test_request_with_invalid_token_returns_401(): void
+    {
+        $response = $this->withToken('invalid_token_xyz')
+            ->postJson('/api/sms/send', [
+                'to' => '221774517228',
+                'text' => 'Test',
+            ]);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'status' => 401,
+            ]);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Envoi simple
+    // ---------------------------------------------------------------------------
+
     public function test_send_sms_successful(): void
     {
         Http::fake([
@@ -27,11 +66,12 @@ class SmsApiTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->postJson('/api/sms/send', [
-            'to' => '221774517228',
-            'text' => 'Test message',
-            'from' => 'E-fPublique',
-        ]);
+        $response = $this->withToken($this->validToken)
+            ->postJson('/api/sms/send', [
+                'to' => '221774517228',
+                'text' => 'Test message',
+                'from' => 'E-fPublique',
+            ]);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -49,11 +89,16 @@ class SmsApiTest extends TestCase
 
     public function test_send_sms_validation_fails_without_required_fields(): void
     {
-        $response = $this->postJson('/api/sms/send', []);
+        $response = $this->withToken($this->validToken)
+            ->postJson('/api/sms/send', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['to', 'text']);
     }
+
+    // ---------------------------------------------------------------------------
+    // Statut
+    // ---------------------------------------------------------------------------
 
     public function test_get_sms_status_successful(): void
     {
@@ -72,7 +117,8 @@ class SmsApiTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->getJson('/api/sms/status/test-message-id-123');
+        $response = $this->withToken($this->validToken)
+            ->getJson('/api/sms/status/test-message-id-123');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -80,6 +126,10 @@ class SmsApiTest extends TestCase
                 'status' => 200,
             ]);
     }
+
+    // ---------------------------------------------------------------------------
+    // Envoi en masse
+    // ---------------------------------------------------------------------------
 
     public function test_send_bulk_sms_successful(): void
     {
@@ -94,11 +144,12 @@ class SmsApiTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->postJson('/api/sms/send-bulk', [
-            'recipients' => ['221774517228', '221771234567'],
-            'text' => 'Bulk message test',
-            'from' => 'E-fPublique',
-        ]);
+        $response = $this->withToken($this->validToken)
+            ->postJson('/api/sms/send-bulk', [
+                'recipients' => ['221774517228', '221771234567'],
+                'text' => 'Bulk message test',
+                'from' => 'E-fPublique',
+            ]);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -111,6 +162,10 @@ class SmsApiTest extends TestCase
                 ],
             ]);
     }
+
+    // ---------------------------------------------------------------------------
+    // Frontend
+    // ---------------------------------------------------------------------------
 
     public function test_home_page_renders_sms_view(): void
     {

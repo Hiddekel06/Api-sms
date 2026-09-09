@@ -41,6 +41,8 @@ return [
         'password' => env('YAS_SMS_PASSWORD'),
         'default_from' => env('YAS_SMS_DEFAULT_FROM', 'E-fPublique'),
         'verify_ssl' => env('YAS_SMS_VERIFY_SSL', false),
+        'bearer_tokens' => array_values(array_filter(array_map('trim', explode(',', (string) env('SMS_API_BEARER_TOKENS', env('SMS_API_BEARER_TOKEN', '')))))),
+        'default_token' => env('SMS_API_BEARER_TOKEN', ''),
     ],
 
 ];
