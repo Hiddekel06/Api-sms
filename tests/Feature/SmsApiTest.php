@@ -117,6 +117,6 @@ class SmsApiTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200)
-            ->assertSee('Yas SMS Gateway');
+            ->assertSee('Ministère de la Fonction Publique');
     }
 }
