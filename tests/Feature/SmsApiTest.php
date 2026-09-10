@@ -164,14 +164,20 @@ class SmsApiTest extends TestCase
     }
 
     // ---------------------------------------------------------------------------
-    // Frontend
+    // Frontend / Dashboard
     // ---------------------------------------------------------------------------
 
-    public function test_home_page_renders_sms_view(): void
+    public function test_home_page_redirects_to_dashboard(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200)
-            ->assertSee('Ministère de la Fonction Publique');
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_unauthenticated_user_cannot_access_dashboard(): void
+    {
+        $response = $this->get(route('dashboard'));
+
+        $response->assertRedirect(route('login'));
     }
 }

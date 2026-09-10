@@ -1,23 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\SendBulkSmsRequest;
 use App\Http\Requests\SendSmsRequest;
 use App\Models\SmsLog;
 use App\Services\YasSmsService;
 use Illuminate\Http\JsonResponse;
 
-class SmsController extends Controller
+class WebSmsController extends Controller
 {
-    public function __construct(
-        protected YasSmsService $smsService
-    ) {}
+    public function __construct(protected YasSmsService $smsService) {}
 
-    /**
-     * Send an SMS message.
-     */
     public function send(SendSmsRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -28,11 +22,9 @@ class SmsController extends Controller
             from: $validated['from'] ?? null
         );
 
-        $apiToken = $request->attributes->get('api_token');
-
         SmsLog::create([
-            'api_token_id' => $apiToken?->id,
-            'source' => 'api',
+            'api_token_id' => null,
+            'source' => 'web',
             'type' => 'single',
             'recipient' => $validated['to'],
             'recipient_count' => 1,
@@ -49,9 +41,6 @@ class SmsController extends Controller
         return response()->json($result, $httpStatus);
     }
 
-    /**
-     * Send bulk SMS messages.
-     */
     public function sendBulk(SendBulkSmsRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -62,11 +51,9 @@ class SmsController extends Controller
             from: $validated['from'] ?? null
         );
 
-        $apiToken = $request->attributes->get('api_token');
-
         SmsLog::create([
-            'api_token_id' => $apiToken?->id,
-            'source' => 'api',
+            'api_token_id' => null,
+            'source' => 'web',
             'type' => 'bulk',
             'recipient' => null,
             'recipient_count' => count($validated['recipients']),
@@ -83,9 +70,6 @@ class SmsController extends Controller
         return response()->json($result, $httpStatus);
     }
 
-    /**
-     * Check SMS delivery logs / status.
-     */
     public function status(string $messageId): JsonResponse
     {
         $result = $this->smsService->getLogs($messageId);
